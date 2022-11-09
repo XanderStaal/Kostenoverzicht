@@ -144,12 +144,14 @@ class TransactieData():
     totaal = 0.
     inTotaal = 0.
     uitTotaal = 0.
+    aantal = 0
     if categorie=='alles':
       for categorie in self.data:
-        subTotaal, inSubTotaal, uitSubTotaal = self.berekenTotalen(categorie, startDatum, eindDatum)
+        subTotaal, inSubTotaal, uitSubTotaal, subAantal = self.berekenTotalen(categorie, startDatum, eindDatum)
         totaal += subTotaal
         inTotaal += inSubTotaal
         uitTotaal += uitSubTotaal
+        aantal += subAantal
     else:
       if categorie in self.data:
         for x in self.data[categorie]['transacties']:
@@ -159,15 +161,16 @@ class TransactieData():
 
           bedrag=x[1]
           totaal += bedrag
+          aantal+=1
           if bedrag > 0:
             inTotaal += bedrag
           else:
             uitTotaal += bedrag
-    return totaal, inTotaal, uitTotaal
+    return totaal, inTotaal, uitTotaal, aantal
 
   def transactiesExporterenCsv(self, path):
     headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving']
-    tabel = self.maakTabel('alles')
+    tabel = self.transactieTabel('alles')
     with open(path, 'w', newline='') as f:
       writer = csv.writer(f) 
       writer.writerow(headers)

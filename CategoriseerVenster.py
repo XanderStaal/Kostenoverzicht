@@ -4,52 +4,67 @@ from PyQt5.QtGui import QFont
 class CategoriseerVenster(QDialog):
   def __init__(self):
     super(CategoriseerVenster, self).__init__()
-    nx = 1500
-    ny = 600
-    self.resize(nx, ny)
+    
+    self.setWindowTitle('Categoriseren')
+
+    self.resize(1500, 600)
     self.transactieData = None
 
     self.transactieLijst1 = QListWidget(self)
     self.transactieLijst1.setFont(QFont('consolas'))
-    self.transactieLijst1.resize(nx//2-100, ny-80)
-    self.transactieLijst1.move(10,60)
     self.transactieLijst1.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     self.transactieLijst1Categorie = QComboBox(self)
     self.transactieLijst1Categorie.activated.connect(self.updateTransactieLijsten)
     self.transactieLijst1Categorie.resize(110, 25)
-    self.transactieLijst1Categorie.move(10, 10)
 
     self.transactieLijst2 = QListWidget(self)
     self.transactieLijst2.setFont(QFont('consolas'))
-    self.transactieLijst2.resize(nx//2-100, ny-80)
-    self.transactieLijst2.move(nx//2+90,60)
+
     self.transactieLijst2.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     self.transactieLijst2Categorie = QComboBox(self)
     self.transactieLijst2Categorie.activated.connect(self.updateTransactieLijsten)
     self.transactieLijst2Categorie.resize(110, 25)
-    self.transactieLijst2Categorie.move(nx//2+90, 10)
 
     self.verplaatsLRKnop = QPushButton('--->', self)
     self.verplaatsLRKnop.resize(110, 25)
-    self.verplaatsLRKnop.move(nx//2-55, ny//2-20)
     self.verplaatsLRKnop.clicked.connect(self.verplaatsLR)
 
     self.verplaatsRLKnop = QPushButton('<---', self)
     self.verplaatsRLKnop.resize(110, 25)
-    self.verplaatsRLKnop.move(nx//2-55, ny//2+20)
     self.verplaatsRLKnop.clicked.connect(self.verplaatsRL)
 
     self.CategorieToevoegenKnop = QPushButton('Categorie toevoegen', self)
     self.CategorieToevoegenKnop.resize(110, 25)
-    self.CategorieToevoegenKnop.move(nx//2-55, 10)
     self.CategorieToevoegenKnop.clicked.connect(self.voegCategorieToe)
 
     self.OKknop = QPushButton('OK', self)
     self.OKknop.resize(110, 25)
-    self.OKknop.move(nx//2-55, ny-40)
     self.OKknop.clicked.connect(self.accept)
+
+  def resizeEvent(self, event):
+    w = max(self.width(), 1000)
+    h = max(self.height(), 600)
+
+    self.transactieLijst1.resize(w//2-100, h-80)
+    self.transactieLijst1.move(10,60)
+    self.transactieLijst2.resize(w//2-100, h-80)
+    self.transactieLijst2.move(w//2+90,60)
+
+    self.transactieLijst1Categorie.move(10, 10)
+    self.transactieLijst2Categorie.move(w//2+90, 10)
+
+    self.verplaatsLRKnop.move(w//2-55, h//2-20)
+    self.verplaatsRLKnop.move(w//2-55, h//2+20)
+
+    self.OKknop.move(w//2-55, h-40)
+    self.CategorieToevoegenKnop.move(w//2-55, 10)
+
+
+
+
+
 
   def setTransactieData(self, transactieData):
     self.transactieData = transactieData
