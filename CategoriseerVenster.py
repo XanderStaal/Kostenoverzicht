@@ -15,7 +15,7 @@ class CategoriseerVenster(QDialog):
     self.transactieLijst1.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     self.transactieLijst1Categorie = QComboBox(self)
-    self.transactieLijst1Categorie.activated.connect(self.updateTransactieLijsten)
+    self.transactieLijst1Categorie.activated.connect(self.updateTransactieLijst1)
     self.transactieLijst1Categorie.resize(110, 25)
 
     self.transactieLijst2 = QListWidget(self)
@@ -24,7 +24,7 @@ class CategoriseerVenster(QDialog):
     self.transactieLijst2.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     self.transactieLijst2Categorie = QComboBox(self)
-    self.transactieLijst2Categorie.activated.connect(self.updateTransactieLijsten)
+    self.transactieLijst2Categorie.activated.connect(self.updateTransactieLijst2)
     self.transactieLijst2Categorie.resize(110, 25)
 
     self.verplaatsLRKnop = QPushButton('--->', self)
@@ -61,27 +61,24 @@ class CategoriseerVenster(QDialog):
     self.OKknop.move(w//2-55, h-40)
     self.CategorieToevoegenKnop.move(w//2-55, 10)
 
-
-
-
-
-
   def setTransactieData(self, transactieData):
     self.transactieData = transactieData
     self.transactieData.sorteerTransacties()
     self.updateCategorieComboBoxen()
-    self.updateTransactieLijsten()
+    self.updateTransactieLijst1()
+    self.updateTransactieLijst2()
 
-  def updateTransactieLijsten(self):
+  def updateTransactieLijst1(self):
     headers = ['datum', 'bedrag', 'tegenrekening', 'omschrijving']
-
-    categorie1 = self.transactieLijst1Categorie.currentText()
+    categorie = self.transactieLijst1Categorie.currentText()
     self.transactieLijst1.clear()
-    self.transactieLijst1.addItems(self.transactieData.transactieLijst(categorie1, headers)[2:])
+    self.transactieLijst1.addItems(self.transactieData.transactieLijst(categorie, headers)[2:])
 
-    categorie2 = self.transactieLijst2Categorie.currentText()
+  def updateTransactieLijst2(self):
+    headers = ['datum', 'bedrag', 'tegenrekening', 'omschrijving']
+    categorie = self.transactieLijst2Categorie.currentText()
     self.transactieLijst2.clear()
-    self.transactieLijst2.addItems(self.transactieData.transactieLijst(categorie2, headers)[2:])
+    self.transactieLijst2.addItems(self.transactieData.transactieLijst(categorie, headers)[2:])
 
   def updateCategorieComboBoxen(self):
     self.transactieLijst1Categorie.clear()
@@ -97,7 +94,8 @@ class CategoriseerVenster(QDialog):
       self.transactieData.data[categorieR]['transacties'].append(self.transactieData.data[categorieL]['transacties'].pop(i))
 
     self.transactieData.sorteerTransacties()
-    self.updateTransactieLijsten()
+    self.updateTransactieLijst1()
+    self.updateTransactieLijst2()
 
   def verplaatsRL(self):
     indexen = sorted([x.row() for x in self.transactieLijst2.selectedIndexes()], reverse=True)
@@ -107,7 +105,8 @@ class CategoriseerVenster(QDialog):
       self.transactieData.data[categorieL]['transacties'].append(self.transactieData.data[categorieR]['transacties'].pop(i))
 
     self.transactieData.sorteerTransacties()
-    self.updateTransactieLijsten()
+    self.updateTransactieLijst1()
+    self.updateTransactieLijst2()
 
   def voegCategorieToe(self):
     d = QDialog()

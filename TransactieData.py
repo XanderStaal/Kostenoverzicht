@@ -13,7 +13,10 @@ class TransactieData():
     self.data = {'ongesorteerd' : {'transacties': [], 'zoektermen': []}}
 
   def categorieOverzicht(self):
-    return sorted(self.data.keys())
+    categorieLijst = sorted(self.data.keys())
+    categorieLijst.pop(categorieLijst.index('ongesorteerd'))
+    categorieLijst.insert(0, 'ongesorteerd')
+    return categorieLijst
 
   def beschermdeCategorieLijst(self):
     return self.beschermdeCategorieen

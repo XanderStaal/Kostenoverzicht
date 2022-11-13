@@ -19,6 +19,8 @@ def main():
    
 class MainWindow(QMainWindow):
   def __init__(self, parent=None):
+    self.laatsteFolder = r'D:\temp'
+
     super().__init__(parent)
     self.transactieData = TransactieData.TransactieData()
 
@@ -177,23 +179,27 @@ class MainWindow(QMainWindow):
 
 
   def laadTriodos(self):
-    fname = QFileDialog.getOpenFileName(self, 'Open Triodos transactieoverzicht', 'C:\\Users\\Xander\\Downloads', 'excel bestand (*.xlsx)')
+    fname = QFileDialog.getOpenFileName(self, 'Open Triodos transactieoverzicht', self.laatsteFolder, 'excel bestand (*.xlsx)')
     if not os.path.exists(fname[0]):
       return
+    self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.verwijderAlleTransacties()
     self.transactieData.transactiesImporterenTriodos(fname[0])
     self.updateDatumSelectie()
     self.updateTransactieOverzicht()
 
   def transactiesOpslaan(self):
-    fname = QFileDialog.getSaveFileName(self, 'Transacties opslaan als', 'D:\\', 'csv bestand (*.csv)')
-    if fname[0]:
-      self.transactieData.transactiesExporterenCsv(fname[0])
-
-  def transactiesLaden(self):
-    fname = QFileDialog.getOpenFileName(self, 'Open transacties', 'D:\\', 'csv bestand (*.csv)')
+    fname = QFileDialog.getSaveFileName(self, 'Transacties opslaan als', self.laatsteFolder, 'csv bestand (*.csv)')
     if not os.path.exists(fname[0]):
       return
+    self.laatsteFolder = os.path.split(fname[0])[0]
+    self.transactieData.transactiesExporterenCsv(fname[0])
+
+  def transactiesLaden(self):
+    fname = QFileDialog.getOpenFileName(self, 'Open transacties', self.laatsteFolder, 'csv bestand (*.csv)')
+    if not os.path.exists(fname[0]):
+      return
+    self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.verwijderAlleTransacties()
     self.transactieData.transactiesImporterenCsv(fname[0])
     self.updateDatumSelectie() 
