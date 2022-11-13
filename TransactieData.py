@@ -109,7 +109,7 @@ class TransactieData():
         if any([x for x in zoektermen if x.lower() in self.data['ongesorteerd']['transacties'][i][2].lower()]) or any([x for x in zoektermen if x.lower() in self.data['ongesorteerd']['transacties'][i][3].lower()]):
           self.data[categorie]['transacties'].append(self.data['ongesorteerd']['transacties'].pop(i))
 
-  def transactieTabel(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None):
+  def transactieTabel(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
     tabel = []
     if categorie=='alles' :
       for categorie in self.data:
@@ -133,14 +133,20 @@ class TransactieData():
             elif hdr == 'omschrijving':
               rij.append(x[3])
           tabel.append(rij)
+
+    if sorteerHeader in headers:
+      if sorteerHeader == 'datum':
+        tabel = sorted(tabel, key=lambda x:datetime.strptime(x[headers.index('datum')], '%d/%m/%Y'), reverse=rev)
+      else:
+        tabel = sorted(tabel, key=lambda x:x[headers.index(sorteerHeader)], reverse=rev)
     return tabel
 
-  def transactieOverzicht(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None):
-    tabel = self.transactieTabel(categorie, headers, startDatum, eindDatum)
+  def transactieOverzicht(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
+    tabel = self.transactieTabel(categorie, headers, startDatum, eindDatum, sorteerHeader, rev)
     return tabulate(tabel, headers=headers)
 
-  def transactieLijst(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None):
-    transactieOverzicht = self.transactieOverzicht(categorie, headers, startDatum, eindDatum)
+  def transactieLijst(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
+    transactieOverzicht = self.transactieOverzicht(categorie, headers, startDatum, eindDatum, sorteerHeader, rev)
     return transactieOverzicht.split('\n')
 
   def berekenTotalen(self, categorie='alles', startDatum=None, eindDatum=None):

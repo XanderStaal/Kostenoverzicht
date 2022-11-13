@@ -58,6 +58,11 @@ class MainWindow(QMainWindow):
     self.transactieOverzichtCategorie.activated.connect(self.updateTransactieOverzicht)
     self.transactieOverzichtCategorie.resize(110, 25)
 
+    self.transactieOverzichtSorteerVolgorde = QComboBox(self)
+    self.transactieOverzichtSorteerVolgorde.addItems(['datum ↑', 'datum ↓', 'bedrag ↑', 'bedrag ↓'])
+    self.transactieOverzichtSorteerVolgorde.activated.connect(self.updateTransactieOverzicht)
+    self.transactieOverzichtSorteerVolgorde.resize(110, 25)
+
     self.inTotaalLabel = QLabel(self)
     self.inTotaalLabel.setText('totaal in:')
     self.inTotaalLabel.resize(60,25)
@@ -142,8 +147,9 @@ class MainWindow(QMainWindow):
     h = max(self.height(), 600)
 
     self.transactieOverzichtCategorie.move(10, 10)
-    self.categoriseerTransactiesKnop.move(130,10)
-    self.categoriseerTransactiesHandmatigKnop.move(250,10)
+    self.transactieOverzichtSorteerVolgorde.move(130, 10)
+    self.categoriseerTransactiesKnop.move(250,10)
+    self.categoriseerTransactiesHandmatigKnop.move(370,10)
 
     self.transactieOverzicht.move(10,45)
     self.transactieOverzicht.resize(2*w//3-30, h-160)
@@ -308,7 +314,10 @@ class MainWindow(QMainWindow):
     d=self.eindDatumSelectie.date()
     eindDatum = datetime(d.year(), d.month(), d.day())
     categorie = self.transactieOverzichtCategorie.currentText()
-    self.transactieOverzicht.setText(self.transactieData.transactieOverzicht(categorie, startDatum=startDatum, eindDatum=eindDatum))
+    sorteerMethode = self.transactieOverzichtSorteerVolgorde.currentText()
+    sorteerHeader = sorteerMethode[:-2]
+    sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
+    self.transactieOverzicht.setText(self.transactieData.transactieOverzicht(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde))
 
     totaal, inTotaal, uitTotaal, aantal = self.transactieData.berekenTotalen(categorie, startDatum, eindDatum)
     self.inTotaalBedrag.setText(f'{inTotaal:.2f}')

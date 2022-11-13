@@ -81,10 +81,20 @@ class CategoriseerVenster(QDialog):
     self.transactieLijst2.addItems(self.transactieData.transactieLijst(categorie, headers)[2:])
 
   def updateCategorieComboBoxen(self):
+    categorie1 = self.transactieLijst1Categorie.currentText()
+    categorie2 = self.transactieLijst2Categorie.currentText()
+    categorieLijst = self.transactieData.categorieOverzicht()
+    
     self.transactieLijst1Categorie.clear()
-    self.transactieLijst1Categorie.addItems(self.transactieData.categorieOverzicht())
+    self.transactieLijst1Categorie.addItems(categorieLijst)
+    if categorie1 in categorieLijst:
+      self.transactieLijst1Categorie.setCurrentIndex(categorieLijst.index(categorie1))
+
     self.transactieLijst2Categorie.clear()
-    self.transactieLijst2Categorie.addItems(self.transactieData.categorieOverzicht())
+    self.transactieLijst2Categorie.addItems(categorieLijst)
+    if categorie1 in categorieLijst:
+      self.transactieLijst2Categorie.setCurrentIndex(categorieLijst.index(categorie2))
+
 
   def verplaatsLR(self):
     indexen = sorted([x.row() for x in self.transactieLijst1.selectedIndexes()], reverse=True)
