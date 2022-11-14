@@ -1,4 +1,5 @@
 from PyQt5.QtCore import Qt, QDate
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 from datetime import datetime
 import sys
@@ -38,12 +39,9 @@ class MainWindow(QMainWindow):
     self.categoriseerTransactiesHandmatigKnop.clicked.connect(self.categoriseerTransactiesHandmatig)
     self.categoriseerTransactiesHandmatigKnop.resize(110,25)
 
-    self.transactieOverzicht = QTextEdit(self)
-    self.transactieOverzicht.setFontFamily('consolas')
-    self.transactieOverzicht.setText('')
-    self.transactieOverzicht.setReadOnly(True)
-    self.transactieOverzicht.resize(580,250)
-    self.transactieOverzicht.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
+    self.transactieOverzicht = QListWidget(self)
+    self.transactieOverzicht.setFont(QFont('consolas', 8))
+    self.transactieOverzicht.itemDoubleClicked.connect(self.addCommentToTransaction)
 
     self.transactiesOpslaanKnop = QPushButton('transacties opslaan', self)
     self.transactiesOpslaanKnop.clicked.connect(self.transactiesOpslaan)
@@ -317,7 +315,9 @@ class MainWindow(QMainWindow):
     sorteerMethode = self.transactieOverzichtSorteerVolgorde.currentText()
     sorteerHeader = sorteerMethode[:-2]
     sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
-    self.transactieOverzicht.setText(self.transactieData.transactieOverzicht(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde))
+
+    self.transactieOverzicht.clear()
+    self.transactieOverzicht.addItems(self.transactieData.transactieLijst(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde))
 
     totaal, inTotaal, uitTotaal, aantal = self.transactieData.berekenTotalen(categorie, startDatum, eindDatum)
     self.inTotaalBedrag.setText(f'{inTotaal:.2f}')
@@ -337,6 +337,45 @@ class MainWindow(QMainWindow):
     firstDate, lastDate = self.transactieData.datumRange()
     self.startDatumSelectie.setDate(QDate(firstDate.year, firstDate.month, firstDate.day))
     self.eindDatumSelectie.setDate(QDate(lastDate.year, lastDate.month, lastDate.day))
+
+  def addCommentToTransaction(self):
+    geselecteerd = self.transactieOverzicht.currentIndex().row() - 2
+    if geselecteerd < 0:
+      return
+
+    d=self.startDatumSelectie.date()
+    startDatum = datetime(d.year(), d.month(), d.day())
+    d=self.eindDatumSelectie.date()
+    eindDatum = datetime(d.year(), d.month(), d.day())
+    categorie = self.transactieOverzichtCategorie.currentText()
+    sorteerMethode = self.transactieOverzichtSorteerVolgorde.currentText()
+    sorteerHeader = sorteerMethode[:-2]
+    sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
+
+    transactie = self.transactieData.transactieTabel(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde)[geselecteerd]
+    categorie = transactie[2]
+    transactieIndex = self.transactieData.transactieTabel(categorie, sorteerHeader='').index(transactie)
+    huidigCommentaar = transactie[5]
+
+    d = QDialog()
+    d.setWindowTitle('commentaar')
+    d.resize(250, 120)
+    label = QLabel(d)
+    label.setText('commentaar toevoegen:')
+    label.resize(130,25)
+    label.move(10,10)
+    commentaar = QLineEdit(d)
+    commentaar.move(10,45)
+    commentaar.resize(230,25)
+    commentaar.setText(huidigCommentaar)
+    okKnop = QPushButton("ok",d)
+    okKnop.move(10,80)
+    okKnop.clicked.connect(d.accept)
+    result = d.exec_()
+    if result==1:
+      self.transactieData.wijzigCommentaar(categorie, transactieIndex, commentaar.text())
+      self.updateTransactieOverzicht()
+
 
 if __name__ == "__main__":
   main()

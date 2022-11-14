@@ -11,7 +11,7 @@ class CategoriseerVenster(QDialog):
     self.transactieData = None
 
     self.transactieLijst1 = QListWidget(self)
-    self.transactieLijst1.setFont(QFont('consolas'))
+    self.transactieLijst1.setFont(QFont('consolas', 8))
     self.transactieLijst1.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
     self.transactieLijst1Categorie = QComboBox(self)
@@ -19,7 +19,7 @@ class CategoriseerVenster(QDialog):
     self.transactieLijst1Categorie.resize(110, 25)
 
     self.transactieLijst2 = QListWidget(self)
-    self.transactieLijst2.setFont(QFont('consolas'))
+    self.transactieLijst2.setFont(QFont('consolas', 8))
 
     self.transactieLijst2.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 

@@ -24,11 +24,11 @@ class TransactieData():
   def voegCategorieToe(self, categorie):
     if not type(categorie) == str:
       return
-    if categorie in self.beschermdeCategorieen:
+    if categorie.lower() in self.beschermdeCategorieen:
       return
-    if categorie in self.data:
+    if categorie.lower() in self.data:
       return
-    self.data[categorie] = {'transacties': [], 'zoektermen': []}
+    self.data[categorie.lower()] = {'transacties': [], 'zoektermen': []}
 
   def verwijderCategorie(self, categorie):
     if categorie in self.beschermdeCategorieen:
@@ -40,20 +40,20 @@ class TransactieData():
   def voegZoektermToe(self, zoekterm, categorie):
     if zoekterm == '':
       return
-    if categorie in self.beschermdeCategorieen:
+    if categorie.lower() in self.beschermdeCategorieen:
       return
-    if categorie not in self.data:
+    if categorie.lower() not in self.data:
       return
-    self.data[categorie]['zoektermen'].append(zoekterm)
+    self.data[categorie.lower()]['zoektermen'].append(zoekterm.lower())
 
   def verwijderZoekterm(self, zoekterm, categorie):
-    if categorie in self.beschermdeCategorieen:
+    if categorie.lower() in self.beschermdeCategorieen:
       return
-    if categorie not in self.data:
+    if categorie.lower() not in self.data:
       return
-    if zoekterm not in self.data[categorie]['zoektermen']:
+    if zoekterm.lower() not in self.data[categorie.lower()]['zoektermen']:
       return
-    self.data[categorie]['zoektermen'].remove(zoekterm)
+    self.data[categorie.lower()]['zoektermen'].remove(zoekterm.lower())
 
   def zoektermOverzicht(self):
     out = ''
@@ -83,15 +83,20 @@ class TransactieData():
     for categorie in loadData:
       if not type(categorie) == str:
         return
-      if categorie in self.beschermdeCategorieen:
+      if categorie.lower() in self.beschermdeCategorieen:
         continue
       if categorie in self.data:
-        self.data[categorie]['zoektermen'].append(loadData[categorie])
+        self.data[categorie.lower()]['zoektermen'].append(loadData[categorie])
       else:
-        self.data[categorie] = {'transacties': [], 'zoektermen': loadData[categorie]}
+        self.data[categorie.lower()] = {'transacties': [], 'zoektermen': loadData[categorie]}
 
-  def voegTransactieToe(self, datum, bedrag, tegenrekening, omschrijving):
-    self.data['ongesorteerd']['transacties'].append([datum, bedrag, tegenrekening, omschrijving])
+  def voegTransactieToe(self, datum, bedrag, tegenrekening, omschrijving, commentaar=''):
+    self.data['ongesorteerd']['transacties'].append([datum, bedrag, tegenrekening, omschrijving, commentaar])
+
+  def wijzigCommentaar(self, transactieCategorie, transactieIndex, nieuwCommentaar):
+    if transactieCategorie in self.data:
+      if len(self.data[transactieCategorie]['transacties'])>transactieIndex:
+        self.data[transactieCategorie]['transacties'][transactieIndex][4] = nieuwCommentaar
 
   def verwijderAlleTransacties(self):
     for categorie in self.data:
@@ -109,11 +114,11 @@ class TransactieData():
         if any([x for x in zoektermen if x.lower() in self.data['ongesorteerd']['transacties'][i][2].lower()]) or any([x for x in zoektermen if x.lower() in self.data['ongesorteerd']['transacties'][i][3].lower()]):
           self.data[categorie]['transacties'].append(self.data['ongesorteerd']['transacties'].pop(i))
 
-  def transactieTabel(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
+  def transactieTabel(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving', 'commentaar'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
     tabel = []
     if categorie=='alles' :
       for categorie in self.data:
-        tabel.extend(self.transactieTabel(categorie, headers, startDatum, eindDatum))    
+        tabel.extend(self.transactieTabel(categorie, headers, startDatum, eindDatum, sorteerHeader, rev))    
     else:
       if categorie in self.data:
         for x in self.data[categorie]['transacties']:
@@ -132,6 +137,8 @@ class TransactieData():
               rij.append(x[2])
             elif hdr == 'omschrijving':
               rij.append(x[3])
+            elif hdr == 'commentaar':
+              rij.append(x[4])
           tabel.append(rij)
 
     if sorteerHeader in headers:
@@ -141,11 +148,11 @@ class TransactieData():
         tabel = sorted(tabel, key=lambda x:x[headers.index(sorteerHeader)], reverse=rev)
     return tabel
 
-  def transactieOverzicht(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
+  def transactieOverzicht(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving', 'commentaar'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
     tabel = self.transactieTabel(categorie, headers, startDatum, eindDatum, sorteerHeader, rev)
     return tabulate(tabel, headers=headers)
 
-  def transactieLijst(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
+  def transactieLijst(self, categorie='alles', headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving', 'commentaar'], startDatum=None, eindDatum=None, sorteerHeader='datum', rev=False):
     transactieOverzicht = self.transactieOverzicht(categorie, headers, startDatum, eindDatum, sorteerHeader, rev)
     return transactieOverzicht.split('\n')
 
@@ -178,7 +185,7 @@ class TransactieData():
     return totaal, inTotaal, uitTotaal, aantal
 
   def transactiesExporterenCsv(self, path):
-    headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving']
+    headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving', 'commentaar']
     tabel = self.transactieTabel('alles')
     with open(path, 'w', newline='') as f:
       writer = csv.writer(f) 
@@ -196,9 +203,10 @@ class TransactieData():
         categorie = row[2]
         tegenrekening = row[3]
         omschrijving = row[4]
+        commentaar = '' if len(row)<6 else row[5]
         if categorie not in self.data:
           self.data[categorie] = {'transacties': [], 'zoektermen': []}
-        self.data[categorie]['transacties'].append([datum, bedrag, tegenrekening, omschrijving])
+        self.data[categorie]['transacties'].append([datum, bedrag, tegenrekening, omschrijving, commentaar])
 
   def transactiesImporterenTriodos(self, path):
     wb = openpyxl.load_workbook(path)
