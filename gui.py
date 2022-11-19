@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
 
     self.transactieOverzicht = QListWidget(self)
     self.transactieOverzicht.setFont(QFont('consolas', 8))
-    self.transactieOverzicht.itemDoubleClicked.connect(self.addCommentToTransaction)
+    self.transactieOverzicht.itemDoubleClicked.connect(self.bewerkTransactie)
 
     self.transactiesOpslaanKnop = QPushButton('transacties opslaan', self)
     self.transactiesOpslaanKnop.clicked.connect(self.transactiesOpslaan)
@@ -239,10 +239,10 @@ class MainWindow(QMainWindow):
 
     result = d.exec_()
     if result==1:
-      categorie = naam.text()
+      categorie = naam.text().lower()
       self.transactieData.voegCategorieToe(categorie)
+      self.updateTransactieCategorien()
       self.updateZoektermOverzicht()
-      self.transactieOverzichtCategorie.addItem(categorie)
 
   def voegZoektermToe(self):
     d = QDialog()
@@ -329,16 +329,19 @@ class MainWindow(QMainWindow):
     self.zoektermOverzicht.setText(self.transactieData.zoektermOverzicht())
 
   def updateTransactieCategorien(self):
+    categorie = self.transactieOverzichtCategorie.currentText()
+    categorieLijst = ['alles'] + self.transactieData.categorieOverzicht()
     self.transactieOverzichtCategorie.clear()
-    self.transactieOverzichtCategorie.addItem('alles')
-    self.transactieOverzichtCategorie.addItems(self.transactieData.categorieOverzicht())
+    self.transactieOverzichtCategorie.addItems(categorieLijst)
+    if categorie in categorieLijst:
+      self.transactieOverzichtCategorie.setCurrentIndex(categorieLijst.index(categorie))
 
   def updateDatumSelectie(self):
     firstDate, lastDate = self.transactieData.datumRange()
     self.startDatumSelectie.setDate(QDate(firstDate.year, firstDate.month, firstDate.day))
     self.eindDatumSelectie.setDate(QDate(lastDate.year, lastDate.month, lastDate.day))
 
-  def addCommentToTransaction(self):
+  def bewerkTransactie(self):
     geselecteerd = self.transactieOverzicht.currentIndex().row() - 2
     if geselecteerd < 0:
       return
@@ -347,34 +350,56 @@ class MainWindow(QMainWindow):
     startDatum = datetime(d.year(), d.month(), d.day())
     d=self.eindDatumSelectie.date()
     eindDatum = datetime(d.year(), d.month(), d.day())
-    categorie = self.transactieOverzichtCategorie.currentText()
+    overzichtCategorie = self.transactieOverzichtCategorie.currentText()
     sorteerMethode = self.transactieOverzichtSorteerVolgorde.currentText()
     sorteerHeader = sorteerMethode[:-2]
     sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
 
-    transactie = self.transactieData.transactieTabel(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde)[geselecteerd]
-    categorie = transactie[2]
-    transactieIndex = self.transactieData.transactieTabel(categorie, sorteerHeader='').index(transactie)
+    transactie = self.transactieData.transactieTabel(overzichtCategorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde)[geselecteerd]
+    huidigeCategorie = transactie[2]
+    huidigeIndex = self.transactieData.transactieTabel(huidigeCategorie, sorteerHeader='').index(transactie)
     huidigCommentaar = transactie[5]
 
+    categorieLijst = self.transactieData.categorieOverzicht()
+
     d = QDialog()
-    d.setWindowTitle('commentaar')
-    d.resize(250, 120)
-    label = QLabel(d)
-    label.setText('commentaar toevoegen:')
-    label.resize(130,25)
-    label.move(10,10)
+    d.setWindowTitle('bewerk transactie')
+    d.resize(250, 200)
+    label1 = QLabel(d)
+    label1.setText('categorie:')
+    label1.move(10,10) 
+    label1.resize(130,25)
+    categorie = QComboBox(d)
+    categorie.addItems(categorieLijst)
+    categorie.setCurrentIndex(categorieLijst.index(huidigeCategorie))
+    categorie.move(10,35)
+    categorie.resize(130, 25)
+    label2 = QLabel(d)
+    label2.setText('commentaar:')
+    label2.move(10,70)
+    label2.resize(130,25)
     commentaar = QLineEdit(d)
-    commentaar.move(10,45)
+    commentaar.move(10,95)
     commentaar.resize(230,25)
     commentaar.setText(huidigCommentaar)
     okKnop = QPushButton("ok",d)
-    okKnop.move(10,80)
+    okKnop.move(10,150)
     okKnop.clicked.connect(d.accept)
     result = d.exec_()
     if result==1:
-      self.transactieData.wijzigCommentaar(categorie, transactieIndex, commentaar.text())
-      self.updateTransactieOverzicht()
+      update = False
+      nieuweCategorie = categorie.currentText()
+      if not (nieuweCategorie == huidigeCategorie):
+        self.transactieData.wijzigCategorie(huidigeCategorie, huidigeIndex, nieuweCategorie)
+        update = True
+
+      nieuwCommentaar = commentaar.text()
+      if not (nieuwCommentaar == huidigCommentaar):
+        self.transactieData.wijzigCommentaar(huidigeCategorie, huidigeIndex, nieuwCommentaar)
+        update = True
+      
+      if update:
+        self.updateTransactieOverzicht()
 
 
 if __name__ == "__main__":

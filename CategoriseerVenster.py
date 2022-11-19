@@ -95,7 +95,6 @@ class CategoriseerVenster(QDialog):
     if categorie1 in categorieLijst:
       self.transactieLijst2Categorie.setCurrentIndex(categorieLijst.index(categorie2))
 
-
   def verplaatsLR(self):
     indexen = sorted([x.row() for x in self.transactieLijst1.selectedIndexes()], reverse=True)
     categorieL = self.transactieLijst1Categorie.currentText()

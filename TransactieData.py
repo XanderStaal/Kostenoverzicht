@@ -85,8 +85,8 @@ class TransactieData():
         return
       if categorie.lower() in self.beschermdeCategorieen:
         continue
-      if categorie in self.data:
-        self.data[categorie.lower()]['zoektermen'].append(loadData[categorie])
+      if categorie.lower() in self.data:
+        self.data[categorie.lower()]['zoektermen'] += loadData[categorie]
       else:
         self.data[categorie.lower()] = {'transacties': [], 'zoektermen': loadData[categorie]}
 
@@ -97,6 +97,12 @@ class TransactieData():
     if transactieCategorie in self.data:
       if len(self.data[transactieCategorie]['transacties'])>transactieIndex:
         self.data[transactieCategorie]['transacties'][transactieIndex][4] = nieuwCommentaar
+
+  def wijzigCategorie(self, huidigeCategorie, huidigeIndex, nieuweCategorie):
+    if huidigeCategorie in self.data:
+      if len(self.data[huidigeCategorie]['transacties'])>huidigeIndex:
+        if nieuweCategorie in self.data:
+          self.data[nieuweCategorie]['transacties'].append(self.data[huidigeCategorie]['transacties'].pop(huidigeIndex))
 
   def verwijderAlleTransacties(self):
     for categorie in self.data:
@@ -204,9 +210,9 @@ class TransactieData():
         tegenrekening = row[3]
         omschrijving = row[4]
         commentaar = '' if len(row)<6 else row[5]
-        if categorie not in self.data:
-          self.data[categorie] = {'transacties': [], 'zoektermen': []}
-        self.data[categorie]['transacties'].append([datum, bedrag, tegenrekening, omschrijving, commentaar])
+        if categorie.lower() not in self.data:
+          self.data[categorie.lower()] = {'transacties': [], 'zoektermen': []}
+        self.data[categorie.lower()]['transacties'].append([datum, bedrag, tegenrekening, omschrijving, commentaar])
 
   def transactiesImporterenTriodos(self, path):
     wb = openpyxl.load_workbook(path)
