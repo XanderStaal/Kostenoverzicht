@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
     self.ladenZoektermKnop.clicked.connect(self.zoektermenLaden)
     self.ladenZoektermKnop.resize(110, 25)
 
-    self.resize(1000, 600)
+    self.showMaximized()
 
 
   def resizeEvent(self, event):
