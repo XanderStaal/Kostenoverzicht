@@ -7,6 +7,7 @@ import os
 
 import CategoriseerVenster
 import TransactieData
+import Rapporteer
 
 # om te compileren tot standalone app, run het volgende commando in de terminal:
 # python -m PyInstaller gui.py -n "Kostenoverzicht" --windowed --onefile
@@ -181,6 +182,14 @@ class MainWindow(QMainWindow):
     self.verwijderZoektermKnop.move(2*w//3+120, h//3+90)
     self.ladenZoektermKnop.move(2*w//3+120, h//3+120)
 
+  def closeEvent(self, event):
+    quit_msg = "Heb je alles opgeslagen?"
+    dlg = QMessageBox.question(self, 'Afsluiten', 
+                     quit_msg, QMessageBox.Yes, QMessageBox.No)
+    if dlg == QMessageBox.Yes:
+        event.accept()
+    else:
+        event.ignore()
 
   def laadTriodos(self):
     fname = QFileDialog.getOpenFileName(self, 'Open Triodos transactieoverzicht', self.laatsteFolder, 'excel bestand (*.xlsx)')

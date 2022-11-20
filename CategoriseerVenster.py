@@ -71,7 +71,6 @@ class CategoriseerVenster(QDialog):
 
   def setTransactieData(self, transactieData):
     self.transactieData = transactieData
-    self.transactieData.sorteerTransacties()
     self.updateCategorieComboBoxen()
     self.updateTransactieLijst1()
     self.updateTransactieLijst2()
