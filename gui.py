@@ -20,7 +20,7 @@ def main():
    
 class MainWindow(QMainWindow):
   def __init__(self, parent=None):
-    self.laatsteFolder = r'D:\temp'
+    self.laatsteFolder = r'D:/'
 
     super().__init__(parent)
     self.transactieData = TransactieData.TransactieData()
@@ -293,18 +293,20 @@ class MainWindow(QMainWindow):
       self.updateZoektermOverzicht()
 
   def zoektermenOpslaan(self):
-    fname = QFileDialog.getSaveFileName(self, 'Zoektermen opslaan als', 'D:\\', 'json bestand (*.json)')
+    fname = QFileDialog.getSaveFileName(self, 'Zoektermen opslaan als', self.laatsteFolder, 'json bestand (*.json)')
     if fname[0]:
+      self.laatsteFolder = os.path.split(fname[0])[0]
       self.transactieData.zoektermenOpslaan(fname[0])
 
   def zoektermenLaden(self):
-    fname = QFileDialog.getOpenFileName(self, 'Open zoektermen', 'D:\\', 'json bestand (*.json)')
+    fname = QFileDialog.getOpenFileName(self, 'Open zoektermen', self.laatsteFolder, 'json bestand (*.json)')
     if os.path.exists(fname[0]):
+      self.laatsteFolder = os.path.split(fname[0])[0]
       self.transactieData.zoektermenLaden(fname[0])
     
-    self.updateZoektermOverzicht()
-    self.updateTransactieCategorien()
-    self.updateTransactieOverzicht()
+      self.updateZoektermOverzicht()
+      self.updateTransactieCategorien()
+      self.updateTransactieOverzicht()
 
   def updateTransactieOverzicht(self):
     d=self.startDatumSelectie.date()
@@ -388,16 +390,17 @@ class MainWindow(QMainWindow):
     result = d.exec_()
     if result==1:
       update = False
-      nieuweCategorie = categorie.currentText()
-      if not (nieuweCategorie == huidigeCategorie):
-        self.transactieData.wijzigCategorie(huidigeCategorie, huidigeIndex, nieuweCategorie)
-        update = True
 
       nieuwCommentaar = commentaar.text()
       if not (nieuwCommentaar == huidigCommentaar):
         self.transactieData.wijzigCommentaar(huidigeCategorie, huidigeIndex, nieuwCommentaar)
         update = True
       
+      nieuweCategorie = categorie.currentText()
+      if not (nieuweCategorie == huidigeCategorie):
+        self.transactieData.wijzigCategorie(huidigeCategorie, huidigeIndex, nieuweCategorie)
+        update = True
+
       if update:
         self.updateTransactieOverzicht()
 

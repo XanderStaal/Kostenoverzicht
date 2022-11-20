@@ -108,9 +108,15 @@ class TransactieData():
     for categorie in self.data:
       self.data[categorie]['transacties'] = []
 
-  def sorteerTransacties(self):
-    for categorie in self.data:
-      self.data[categorie]['transacties'] = sorted(self.data[categorie]['transacties'])
+  def sorteerTransacties(self, categorie='alles', sorteerHeader='datum', rev=False):
+    headers=['datum', 'bedrag', 'categorie', 'tegenrekening', 'omschrijving', 'commentaar']
+    if sorteerHeader in headers:
+      if categorie=='alles':
+        for categorie in self.data:
+          self.sorteerTransacties(categorie, sorteerHeader, rev)
+      else:
+        if categorie in self.data:
+          self.data[categorie]['transacties'] = sorted(self.data[categorie]['transacties'], key=lambda x:x[headers.index(sorteerHeader)], reverse=rev)
 
   def categoriseerTransactiesMetZoektermen(self):
     for categorie in self.data:

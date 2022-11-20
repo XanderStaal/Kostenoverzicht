@@ -120,6 +120,10 @@ class CategoriseerVenster(QDialog):
     categorieL = self.transactieLijst1Categorie.currentText()
     categorieR = self.transactieLijst2Categorie.currentText()
     for i in indexen:
+      sorteerMethode = self.transactieLijstSorteerVolgorde.currentText()
+      sorteerHeader = sorteerMethode[:-2]
+      sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
+      self.transactieData.sorteerTransacties(categorieL, sorteerHeader, sorteerVolgorde)
       self.transactieData.data[categorieR]['transacties'].append(self.transactieData.data[categorieL]['transacties'].pop(i))
 
     self.transactieData.sorteerTransacties()
@@ -130,6 +134,10 @@ class CategoriseerVenster(QDialog):
     categorieL = self.transactieLijst1Categorie.currentText()
     categorieR = self.transactieLijst2Categorie.currentText()
     for i in indexen:
+      sorteerMethode = self.transactieLijstSorteerVolgorde.currentText()
+      sorteerHeader = sorteerMethode[:-2]
+      sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
+      self.transactieData.sorteerTransacties(categorieR, sorteerHeader, sorteerVolgorde)
       self.transactieData.data[categorieL]['transacties'].append(self.transactieData.data[categorieR]['transacties'].pop(i))
 
     self.transactieData.sorteerTransacties()
