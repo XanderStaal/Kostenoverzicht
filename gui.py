@@ -208,6 +208,11 @@ class MainWindow(QMainWindow):
     self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.transactiesExporterenCsv(fname[0])
 
+    # rapp = Rapporteer.rapporteerTransactieData()
+    # rapp.setTransactieData(self.transactieData)
+    # rapp.maakJaarBarPlots(2022, 'supermarkt')
+
+
   def transactiesLaden(self):
     fname = QFileDialog.getOpenFileName(self, 'Open transacties', self.laatsteFolder, 'csv bestand (*.csv)')
     if not os.path.exists(fname[0]):
