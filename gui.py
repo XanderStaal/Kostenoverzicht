@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QDate
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from datetime import datetime
 import sys
@@ -18,19 +18,44 @@ def main():
   window.show()
   sys.exit(app.exec_())
 
-   
+class ZoekVenster(QDialog):
+  def __init__(self):
+    super(ZoekVenster, self).__init__()
+    self.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+    self.counter = 0
+    self.setWindowTitle('Zoeken')
+    self.zoekterm = QLineEdit(self)
+    self.zoekterm.setAlignment(Qt.AlignmentFlag.AlignRight)
+    self.zoekterm.setReadOnly(False)
+    self.zoekterm.resize(110,25)
+    self.zoekterm.move(10, 10)
+    self.zoekterm.textEdited.connect(self.resetCounter)
+
+    self.zoekKnop = QPushButton('zoek volgende', self)
+    self.zoekKnop.clicked.connect(self.incrementCounter)
+    self.zoekKnop.resize(110,25)
+    self.zoekKnop.move(10,45)
+
+    self.setFixedSize(130, 80)
+
+  def resetCounter(self):
+    self.counter = 0
+
+  def incrementCounter(self):
+    self.counter += 1
+
+
 class MainWindow(QMainWindow):
   def __init__(self, parent=None):
+    super().__init__(parent)
+    self.setWindowTitle('Kasboekje')
+    self.setWindowIcon(QIcon('icoon.png'))
+    
+    self.transactieData = TransactieData.TransactieData()
     self.laatsteFolder = r'D:/'
 
-    super().__init__(parent)
-    self.transactieData = TransactieData.TransactieData()
-
-    self.setWindowTitle('Kasboekje')
-    
-    self.triodosLaadKnop = QPushButton('importeer Triodos', self)
-    self.triodosLaadKnop.clicked.connect(self.laadTriodos)
-    self.triodosLaadKnop.resize(110,25)
+    self.zoekVenster = ZoekVenster()
+    self.zoekVenster.zoekKnop.clicked.connect(self.transactieZoeken)
 
     self.categoriseerTransactiesKnop = QPushButton('categoriseer auto', self)
     self.categoriseerTransactiesKnop.clicked.connect(self.categoriseerTransactiesAutomatisch)
@@ -40,16 +65,9 @@ class MainWindow(QMainWindow):
     self.categoriseerTransactiesHandmatigKnop.clicked.connect(self.categoriseerTransactiesHandmatig)
     self.categoriseerTransactiesHandmatigKnop.resize(110,25)
 
-    self.transactieOverzicht = QListWidget(self)
-    self.transactieOverzicht.setFont(QFont('consolas', 8))
-    self.transactieOverzicht.itemDoubleClicked.connect(self.bewerkTransactie)
-
-    self.transactiesOpslaanKnop = QPushButton('transacties opslaan', self)
-    self.transactiesOpslaanKnop.clicked.connect(self.transactiesOpslaan)
-    self.transactiesOpslaanKnop.resize(110,25)
-    self.csvLadenKnop = QPushButton('transacties laden', self)
-    self.csvLadenKnop.clicked.connect(self.transactiesLaden)
-    self.csvLadenKnop.resize(110,25)
+    self.transactieLijst = QListWidget(self)
+    self.transactieLijst.setFont(QFont('consolas', 8))
+    self.transactieLijst.itemDoubleClicked.connect(self.bewerkTransactie)
 
     self.transactieOverzichtCategorie = QComboBox(self)
     self.transactieOverzichtCategorie.addItem('alles')
@@ -122,6 +140,10 @@ class MainWindow(QMainWindow):
     self.voegCategorieToeKnop.clicked.connect(self.voegCategorieToe)
     self.voegCategorieToeKnop.resize(110,25)
 
+    self.verwijderCategorieKnop = QPushButton('verwijder categorie', self)
+    self.verwijderCategorieKnop.clicked.connect(self.verwijderCategorie)
+    self.verwijderCategorieKnop.resize(110,25)
+
     self.voegZoektermToeKnop = QPushButton('voeg zoekterm toe', self)
     self.voegZoektermToeKnop.clicked.connect(self.voegZoektermToe)
     self.voegZoektermToeKnop.resize(110,25)
@@ -130,32 +152,54 @@ class MainWindow(QMainWindow):
     self.verwijderZoektermKnop.clicked.connect(self.verwijderZoekterm)
     self.verwijderZoektermKnop.resize(110,25)
 
-    self.opslaanZoektermKnop = QPushButton('zoektermen opslaan', self)
-    self.opslaanZoektermKnop.clicked.connect(self.zoektermenOpslaan)
-    self.opslaanZoektermKnop.resize(110, 25)
+    self.transactieZoekenShortcut = QShortcut(QKeySequence("Ctrl+f"), self)
+    self.transactieZoekenShortcut.activated.connect(self.openZoekVenster)
 
-    self.ladenZoektermKnop = QPushButton('zoektermen laden', self)
-    self.ladenZoektermKnop.clicked.connect(self.zoektermenLaden)
-    self.ladenZoektermKnop.resize(110, 25)
+    self.initUI()
 
     self.showMaximized()
 
+  def initUI(self):
+    zoektermenLaden = QAction('&Zoektermen laden', self)
+    zoektermenLaden.triggered.connect(self.zoektermenLaden)
+    zoektermenOpslaan = QAction('&Zoektermen opslaan', self)
+    zoektermenOpslaan.triggered.connect(self.zoektermenOpslaan)
+
+    transactiesLaden = QAction('&Transacties laden', self)
+    transactiesLaden.triggered.connect(self.transactiesLaden)
+    transactiesOpslaan = QAction('&Transacties opslaan', self)
+    transactiesOpslaan.triggered.connect(self.transactiesOpslaan)
+
+    triodosImport = QAction('Tr&iodos importeren', self)
+    triodosImport.triggered.connect(self.laadTriodos)
+
+    afsluiten = QAction('&Afsluiten', self)
+    afsluiten.setStatusTip('Applicatie afsluiten')
+    afsluiten.triggered.connect(self.close)
+    
+    menubar = self.menuBar()
+    fileMenu = menubar.addMenu('&File')
+    fileMenu.addAction(zoektermenLaden)
+    fileMenu.addAction(zoektermenOpslaan)
+    fileMenu.addSeparator()
+    fileMenu.addAction(transactiesLaden)
+    fileMenu.addAction(transactiesOpslaan)
+    fileMenu.addSeparator()
+    fileMenu.addAction(triodosImport)
+    fileMenu.addSeparator()
+    fileMenu.addAction(afsluiten)  
 
   def resizeEvent(self, event):
     w = max(self.width(), 1000)
     h = max(self.height(), 600)
 
-    self.transactieOverzichtCategorie.move(10, 10)
-    self.transactieOverzichtSorteerVolgorde.move(130, 10)
-    self.categoriseerTransactiesKnop.move(250,10)
-    self.categoriseerTransactiesHandmatigKnop.move(370,10)
+    self.transactieOverzichtCategorie.move(10, 30)
+    self.transactieOverzichtSorteerVolgorde.move(130, 30)
+    self.categoriseerTransactiesKnop.move(250,30)
+    self.categoriseerTransactiesHandmatigKnop.move(370,30)
 
-    self.transactieOverzicht.move(10,45)
-    self.transactieOverzicht.resize(2*w//3-30, h-160)
-
-    self.triodosLaadKnop.move(10, h-100)
-    self.transactiesOpslaanKnop.move(10, h-70)
-    self.csvLadenKnop.move(10, h-40)
+    self.transactieLijst.move(10,65)
+    self.transactieLijst.resize(2*w//3-30, h-180)
 
     self.inTotaalLabel.move(160, h-100)
     self.uitTotaalLabel.move(160, h-70)
@@ -172,21 +216,21 @@ class MainWindow(QMainWindow):
     self.startDatumSelectie.move(560, h-100)
     self.eindDatumSelectie.move(560, h-70)
 
-    self.zoektermOverzichtLabel.move(2*w//3,25)
+    self.zoektermOverzichtLabel.move(2*w//3, 40)
     self.zoektermOverzicht.resize(w//3-10, h//3)
-    self.zoektermOverzicht.move(2*w//3, 45)
+    self.zoektermOverzicht.move(2*w//3, 65)
 
-    self.voegCategorieToeKnop.move(2*w//3, h//3+60)
-    self.voegZoektermToeKnop.move(2*w//3, h//3+90)
-    self.opslaanZoektermKnop.move(2*w//3, h//3+120)
-    self.verwijderZoektermKnop.move(2*w//3+120, h//3+90)
-    self.ladenZoektermKnop.move(2*w//3+120, h//3+120)
+    self.voegCategorieToeKnop.move(2*w//3, h//3+80)
+    self.verwijderCategorieKnop.move(2*w//3+120, h//3+80)
+    self.voegZoektermToeKnop.move(2*w//3, h//3+110)
+    self.verwijderZoektermKnop.move(2*w//3+120, h//3+110)
 
   def closeEvent(self, event):
     quit_msg = "Heb je alles opgeslagen?"
     dlg = QMessageBox.question(self, 'Afsluiten', 
                      quit_msg, QMessageBox.Yes, QMessageBox.No)
     if dlg == QMessageBox.Yes:
+        self.zoekVenster.close()
         event.accept()
     else:
         event.ignore()
@@ -242,6 +286,7 @@ class MainWindow(QMainWindow):
 
   def voegCategorieToe(self):
     d = QDialog()
+    d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
     naam = QLineEdit(d)
     naam.move(10,10)
@@ -258,8 +303,32 @@ class MainWindow(QMainWindow):
       self.updateTransactieCategorien()
       self.updateZoektermOverzicht()
 
+  def verwijderCategorie(self):
+    d = QDialog()
+    d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
+
+    categorie = QComboBox(d)
+    categorieen = self.transactieData.categorieOverzicht()
+    beschermdeCategorien = self.transactieData.beschermdeCategorieLijst()
+    categorie.addItems(list(set(categorieen) - set(beschermdeCategorien)))
+    categorie.resize(110, 25)
+    categorie.move(10, 10)
+
+    okKnop = QPushButton("ok",d)
+    okKnop.move(10,45)
+    okKnop.clicked.connect(d.accept)
+    result = d.exec_()
+
+    if result==1:
+      categorie = categorie.currentText()
+      self.transactieData.verwijderCategorie(categorie)
+      self.updateZoektermOverzicht()
+      self.updateTransactieCategorien()
+      self.updateTransactieOverzicht()
+
   def voegZoektermToe(self):
     d = QDialog()
+    d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
     categorie = QComboBox(d)
     categorieen = self.transactieData.categorieOverzicht()
@@ -285,6 +354,7 @@ class MainWindow(QMainWindow):
 
   def verwijderZoekterm(self):
     d = QDialog()
+    d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
     categorie = QComboBox(d)
     categorie.addItems(self.transactieData.categorieOverzicht())
@@ -332,14 +402,18 @@ class MainWindow(QMainWindow):
     sorteerHeader = sorteerMethode[:-2]
     sorteerVolgorde = True if sorteerMethode[-1] =='↑' else False
 
-    self.transactieOverzicht.clear()
-    self.transactieOverzicht.addItems(self.transactieData.transactieLijst(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde))
+    self.transactieLijst.clear()
+    self.transactieLijst.addItems(self.transactieData.transactieLijst(categorie, startDatum=startDatum, eindDatum=eindDatum, sorteerHeader=sorteerHeader, rev=sorteerVolgorde))
 
     totaal, inTotaal, uitTotaal, aantal = self.transactieData.berekenTotalen(categorie, startDatum, eindDatum)
     self.inTotaalBedrag.setText(f'{inTotaal:.2f}')
     self.uitTotaalBedrag.setText(f'{uitTotaal:.2f}')
     self.totaalBedrag.setText(f'{totaal:.2f}')
     self.aantal.setText(f'{aantal}')
+
+    items = self.transactieLijst.findItems('ongesorteerd', Qt.MatchContains)
+    for item in items:
+      item.setBackground(QColor(255, 0, 0, 20))
 
   def updateZoektermOverzicht(self):
     self.zoektermOverzicht.setText(self.transactieData.zoektermOverzicht())
@@ -358,7 +432,7 @@ class MainWindow(QMainWindow):
     self.eindDatumSelectie.setDate(QDate(lastDate.year, lastDate.month, lastDate.day))
 
   def bewerkTransactie(self):
-    geselecteerd = self.transactieOverzicht.currentIndex().row() - 2
+    geselecteerd = self.transactieLijst.currentIndex().row() - 2
     if geselecteerd < 0:
       return
 
@@ -379,6 +453,7 @@ class MainWindow(QMainWindow):
     categorieLijst = self.transactieData.categorieOverzicht()
 
     d = QDialog()
+    d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
     d.setWindowTitle('bewerk transactie')
     d.resize(250, 200)
     label1 = QLabel(d)
@@ -418,6 +493,20 @@ class MainWindow(QMainWindow):
       if update:
         self.updateTransactieOverzicht()
 
+  def openZoekVenster(self):
+    self.zoekVenster.show()
+    self.zoekVenster.activateWindow()
+
+  def transactieZoeken(self):
+    zoekterm = self.zoekVenster.zoekterm.text()
+
+    if len(zoekterm)>0:
+      items = self.transactieLijst.findItems(zoekterm, Qt.MatchContains)
+      nItems = len(items)
+      if nItems>0:
+        index = (self.zoekVenster.counter-1)%nItems
+        self.transactieLijst.setCurrentItem(items[index])
+        self.transactieLijst.scrollToItem(items[index], QAbstractItemView.PositionAtCenter)
 
 if __name__ == "__main__":
   main()

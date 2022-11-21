@@ -35,7 +35,8 @@ class TransactieData():
       return
     if not categorie in self.data:
       return
-    self.data['ongesorteerd']['transacties'].append(self.data[categorie]['transacties'])
+    self.data['ongesorteerd']['transacties'] += self.data[categorie]['transacties']
+    self.data.pop(categorie)
 
   def voegZoektermToe(self, zoekterm, categorie):
     if zoekterm == '':
