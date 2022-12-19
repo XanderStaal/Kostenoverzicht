@@ -312,7 +312,7 @@ class MainWindow(QMainWindow):
     categorie = QComboBox(d)
     categorieen = self.transactieData.categorieOverzicht()
     beschermdeCategorien = self.transactieData.beschermdeCategorieLijst()
-    categorie.addItems(list(set(categorieen) - set(beschermdeCategorien)))
+    categorie.addItems(sorted(list(set(categorieen) - set(beschermdeCategorien))))
     categorie.resize(110, 25)
     categorie.move(10, 10)
 
@@ -335,7 +335,7 @@ class MainWindow(QMainWindow):
     categorie = QComboBox(d)
     categorieen = self.transactieData.categorieOverzicht()
     beschermdeCategorien = self.transactieData.beschermdeCategorieLijst()
-    categorie.addItems(list(set(categorieen) - set(beschermdeCategorien)))
+    categorie.addItems(sorted(list(set(categorieen) - set(beschermdeCategorien))))
     categorie.resize(110, 25)
     categorie.move(10, 10)
 
