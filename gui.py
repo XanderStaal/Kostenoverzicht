@@ -227,8 +227,7 @@ class MainWindow(QMainWindow):
 
   def closeEvent(self, event):
     quit_msg = "Heb je alles opgeslagen?"
-    dlg = QMessageBox.question(self, 'Afsluiten', 
-                     quit_msg, QMessageBox.Yes, QMessageBox.No)
+    dlg = QMessageBox.question(self, 'Afsluiten', quit_msg, QMessageBox.Yes, QMessageBox.No)
     if dlg == QMessageBox.Yes:
         self.zoekVenster.close()
         event.accept()
@@ -238,7 +237,10 @@ class MainWindow(QMainWindow):
   def laadTriodos(self):
     fname = QFileDialog.getOpenFileName(self, 'Open Triodos transactieoverzicht', self.laatsteFolder, 'excel bestand (*.xlsx)')
     if not os.path.exists(fname[0]):
-      return
+      msg = "Dit bestand overschrijven?"
+      dlg = QMessageBox.question(self, 'Overschrijven', msg, QMessageBox.Yes, QMessageBox.No)
+      if dlg == QMessageBox.No:
+        return
     self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.verwijderAlleTransacties()
     self.transactieData.transactiesImporterenTriodos(fname[0])
