@@ -170,8 +170,10 @@ class MainWindow(QMainWindow):
     transactiesOpslaan = QAction('&Transacties opslaan', self)
     transactiesOpslaan.triggered.connect(self.transactiesOpslaan)
 
-    triodosImport = QAction('Tr&iodos importeren', self)
+    triodosImport = QAction('Triodos &importeren', self)
     triodosImport.triggered.connect(self.laadTriodos)
+    asnImport = QAction('Asn &importeren', self)
+    asnImport.triggered.connect(self.laadAsn)
 
     afsluiten = QAction('&Afsluiten', self)
     afsluiten.setStatusTip('Applicatie afsluiten')
@@ -186,6 +188,7 @@ class MainWindow(QMainWindow):
     fileMenu.addAction(transactiesOpslaan)
     fileMenu.addSeparator()
     fileMenu.addAction(triodosImport)
+    fileMenu.addAction(asnImport)
     fileMenu.addSeparator()
     fileMenu.addAction(afsluiten)  
 
@@ -237,20 +240,30 @@ class MainWindow(QMainWindow):
   def laadTriodos(self):
     fname = QFileDialog.getOpenFileName(self, 'Open Triodos transactieoverzicht', self.laatsteFolder, 'excel bestand (*.xlsx)')
     if not os.path.exists(fname[0]):
-      msg = "Dit bestand overschrijven?"
-      dlg = QMessageBox.question(self, 'Overschrijven', msg, QMessageBox.Yes, QMessageBox.No)
-      if dlg == QMessageBox.No:
-        return
+      return
     self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.verwijderAlleTransacties()
     self.transactieData.transactiesImporterenTriodos(fname[0])
     self.updateDatumSelectie()
     self.updateTransactieOverzicht()
 
-  def transactiesOpslaan(self):
-    fname = QFileDialog.getSaveFileName(self, 'Transacties opslaan als', self.laatsteFolder, 'csv bestand (*.csv)')
+  def laadAsn(self):
+    fname = QFileDialog.getOpenFileName(self, 'Open ASN transactieoverzicht', self.laatsteFolder, 'csv bestand (*.csv)')
     if not os.path.exists(fname[0]):
       return
+    self.laatsteFolder = os.path.split(fname[0])[0]
+    self.transactieData.verwijderAlleTransacties()
+    self.transactieData.transactiesImporterenAsn(fname[0])
+    self.updateDatumSelectie()
+    self.updateTransactieOverzicht()
+
+  def transactiesOpslaan(self):
+    fname = QFileDialog.getSaveFileName(self, 'Transacties opslaan als', self.laatsteFolder, 'csv bestand (*.csv)')
+    if os.path.exists(fname[0]):
+      msg = "Dit bestand overschrijven?"
+      dlg = QMessageBox.question(self, 'Overschrijven', msg, QMessageBox.Yes, QMessageBox.No)
+      if dlg == QMessageBox.No:
+        return
     self.laatsteFolder = os.path.split(fname[0])[0]
     self.transactieData.transactiesExporterenCsv(fname[0])
 
@@ -359,7 +372,9 @@ class MainWindow(QMainWindow):
     d.setWindowFlags(Qt.Window | Qt.WindowTitleHint | Qt.WindowCloseButtonHint)
 
     categorie = QComboBox(d)
-    categorie.addItems(self.transactieData.categorieOverzicht())
+    categorieen = self.transactieData.categorieOverzicht()
+    beschermdeCategorien = self.transactieData.beschermdeCategorieLijst()
+    categorie.addItems(sorted(list(set(categorieen) - set(beschermdeCategorien))))
     categorie.resize(110, 25)
     categorie.move(10, 10)
 
@@ -380,9 +395,13 @@ class MainWindow(QMainWindow):
 
   def zoektermenOpslaan(self):
     fname = QFileDialog.getSaveFileName(self, 'Zoektermen opslaan als', self.laatsteFolder, 'json bestand (*.json)')
-    if fname[0]:
-      self.laatsteFolder = os.path.split(fname[0])[0]
-      self.transactieData.zoektermenOpslaan(fname[0])
+    if os.path.exists(fname[0]):
+      msg = "Dit bestand overschrijven?"
+      dlg = QMessageBox.question(self, 'Overschrijven', msg, QMessageBox.Yes, QMessageBox.No)
+      if dlg == QMessageBox.No:
+        return
+    self.laatsteFolder = os.path.split(fname[0])[0]
+    self.transactieData.zoektermenOpslaan(fname[0])
 
   def zoektermenLaden(self):
     fname = QFileDialog.getOpenFileName(self, 'Open zoektermen', self.laatsteFolder, 'json bestand (*.json)')

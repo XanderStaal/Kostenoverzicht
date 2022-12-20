@@ -242,6 +242,17 @@ class TransactieData():
       self.voegTransactieToe(datum, bedrag, tegenrekening, omschrijving)
     return
 
+  def transactiesImporterenAsn(self, path):
+    with open (path, 'r', newline='') as f:
+      reader = csv.reader(f)
+      for row in reader:
+        datum = datetime.strptime(row[0], '%d-%m-%Y')
+        bedrag = float(row[10])
+        tegenrekening = row[3]
+        omschrijving = row[17]
+        self.voegTransactieToe(datum, bedrag, tegenrekening, omschrijving)
+    return
+
   def datumRange(self):
     firstDate= datetime.now()
     lastDate = datetime.now()
